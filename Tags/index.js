@@ -16,7 +16,7 @@ class Tags extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    const { initialTags = [], initialText = " " } = props;
+    const { initialTags = [], initialText = "" } = props;
 
     this.setState({
       tags: initialTags,
@@ -25,29 +25,42 @@ class Tags extends React.Component {
   }
 
   addTag = text => {
+
+    const {conditionForAdd, conditionFailedCallback} = this.props
+
+    if(text.trim() === '') {
+      return
+    }
+
+    if(!conditionForAdd(text)) {
+      conditionFailedCallback(text);
+      return
+    }
+
     this.setState(
         {
           tags: [...this.state.tags, text.trim()],
-          text: " "
+          text: ""
         },
         () => this.props.onChangeTags && this.props.onChangeTags(this.state.tags)
     );
   };
 
-  onChangeText = text => {
-    if (text.length === 0) {
-      // `onKeyPress` isn't currently supported on Android; I've placed an extra
-      //  space character at the start of `TextInput` which is used to determine if the
-      //  user is erasing.
+  onKeyPress = (event: { nativeEvent: { key: string } }) => {
+    if(this.state.text === '' && event.nativeEvent.key === 'Backspace') {
       this.setState(
           {
             tags: this.state.tags.slice(0, -1),
-            text: this.state.tags.slice(-1)[0] || " "
+            text: this.state.tags.slice(-1)[0] || ""
           },
           () =>
               this.props.onChangeTags && this.props.onChangeTags(this.state.tags)
       );
-    } else if (
+    }
+  }
+
+  onChangeText = text => {
+    if (
         text.length > 1 &&
         this.props.createTagOnString.includes(text.slice(-1)) &&
         !(this.state.tags.indexOf(text.slice(0, -1).trim()) > -1)
@@ -123,6 +136,8 @@ class Tags extends React.Component {
                     onChangeText={this.onChangeText}
                     onSubmitEditing={this.onSubmitEditing}
                     underlineColorAndroid="transparent"
+                    onKeyPress={this.onKeyPress}
+                    selectionColor='rgb(96, 106, 123)'
                     {...textInputProps}
                 />
               </View>
@@ -134,12 +149,14 @@ class Tags extends React.Component {
 
 Tags.defaultProps = {
   initialTags: [],
-  initialText: " ",
-  createTagOnString: [",", " "],
+  initialText: "",
+  createTagOnString: [",", ""],
   createTagOnReturn: false,
   readonly: false,
   deleteTagOnPress: true,
   maxNumberOfTags: Number.POSITIVE_INFINITY,
+  conditionForAdd: (text) => true,
+  conditionFailedCallback: () => {},
   renderTag: ({ tag, index, ...rest }) => (
       <Tag key={`${tag}-${index}`} label={tag} {...rest} />
   )
@@ -162,7 +179,9 @@ Tags.propTypes = {
   inputStyle: PropTypes.any,
   tagContainerStyle: PropTypes.any,
   tagTextStyle: PropTypes.any,
-  textInputProps: PropTypes.object
+  textInputProps: PropTypes.object,
+  conditionForAdd: PropTypes.func,
+  conditionFailedCallback: PropTypes.func
 };
 
 export { Tag };
