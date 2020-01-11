@@ -139,6 +139,7 @@ class Tags extends React.Component {
                     onKeyPress={this.onKeyPress}
                     selectionColor='rgb(96, 106, 123)'
                     {...textInputProps}
+                    placeholder={this.state.tags && this.state.tags.length > 0 ? '' : textInputProps.placeholder}
                 />
               </View>
           )}
