@@ -48,13 +48,17 @@ class Tags extends React.Component {
 
   onKeyPress = (event: { nativeEvent: { key: string } }) => {
     if(this.state.text === '' && event.nativeEvent.key === 'Backspace') {
+      const text = this.state.tags.slice(-1)[0] || ""
       this.setState(
           {
             tags: this.state.tags.slice(0, -1),
-            text: this.state.tags.slice(-1)[0] || ""
+            text
           },
           () =>
-              this.props.onChangeTags && this.props.onChangeTags(this.state.tags)
+          {
+            this.props.onChangeTags && this.props.onChangeTags(this.state.tags)
+            this.props.onChangeText && this.props.onChangeText(text)
+          }
       );
     }
   }
@@ -67,6 +71,7 @@ class Tags extends React.Component {
     ) {
       this.addTag(text.slice(0, -1));
     } else {
+      this.props.onChangeText && this.props.onChangeText(text)
       this.setState({ text });
     }
   };
